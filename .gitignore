@@ -1,0 +1,15 @@
+# Entorno virtual de Python
+venv/
+
+# Archivos generados por Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de configuración sensible
+.env
+*.secret
+
+# Editor/IDE (ejemplo para VS Code)
+.vscode/
