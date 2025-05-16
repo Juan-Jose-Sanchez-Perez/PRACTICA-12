@@ -7,7 +7,9 @@ INSERT INTO Proveedores (nombre, telefono, contacto) VALUES
   ('Proveedor Cigarrera',              '5551234007', 'cigarrera_contacto@gmail.com'),
   ('Proveedor Embutidos El Rey',       '5551234008', 'embutidos.rey@outlook.com'),
   ('Proveedor Lácteos Alpura',         '5551234009', 'alpura.sales@gmail.com'),
-  ('Proveedor Snacks del Valle',       '5551234010', 'snacks.valle@outlook.com');
+  ('Proveedor Snacks del Valle',       '5551234010', 'snacks.valle@outlook.com')
+  ('Proveedor Sabritas',               '5551234001', 'sabritas@gmail.com'),
+  ('Proveedor Refrescos',              '5551234002', 'variedades_refrescos@gmail.com');
 
 
 INSERT INTO Clientes (telefono, nombre, correo, direccion) VALUES
@@ -18,7 +20,9 @@ INSERT INTO Clientes (telefono, nombre, correo, direccion) VALUES
   ('9617890123','Fernando Cruz',     'fernando.cruz@gmail.com',    'Calle Juárez 50'),
   ('9618901234','Karina López',      'karina.lopez@outlook.com',   'Av. Universidad 120'),
   ('9619012345','Javier Sánchez',    'javier.sanchez@gmail.com',   'Calle Hidalgo 215'),
-  ('9610123456','María Fernanda',    'maria.fernanda@outlook.com', 'Av. Central 89');
+  ('9610123456','María Fernanda',    'maria.fernanda@outlook.com', 'Av. Central 89')
+  ('9617898524','Carlos Díaz',       'carlos@outlook.com',         'Av Central No° 123'),
+  ('9612463791','Ana Ruiz',          'anita_ruiz@gmail.com',        'Calle Central No° 456');
 
 
 INSERT INTO Empleados (nombre, puesto, salario, fecha_contratacion, turno) VALUES
@@ -29,4 +33,6 @@ INSERT INTO Empleados (nombre, puesto, salario, fecha_contratacion, turno) VALUE
   ('Sergio Torres',     'Supervisor de Stock',      8300.00, '2022-12-01', 'Vespertino'),
   ('Patricia Gómez',    'Atención al Cliente',      8000.00, '2023-03-20', 'Matutino'),
   ('Roberto Díaz',      'Encargado de Almacén',     8200.00, '2024-06-30', 'Vespertino'),
-  ('Verónica Solís',    'Asistente Administrativo', 7100.00, '2025-04-10', 'Nocturno');
+  ('Verónica Solís',    'Asistente Administrativo', 7100.00, '2025-04-10', 'Nocturno')
+  ('Lucía Gómez',       'Cajera',                   7000.00,  '2024-01-10', 'Matutino'),
+  ('Raúl Medina',       'Cajero',                   7000.00,  '2023-08-15', 'Vespertino');
