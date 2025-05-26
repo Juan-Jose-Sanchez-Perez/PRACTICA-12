@@ -1,6 +1,7 @@
 import flet as ft
 from db_connection import get_connection
 
+
 def main(page: ft.Page):
     page.title = "CRUD Artículos"
     page.scroll = ft.ScrollMode.AUTO
@@ -25,16 +26,42 @@ def main(page: ft.Page):
     stock = ft.TextField(label="Stock", keyboard_type=ft.KeyboardType.NUMBER)
     fecha_caducidad = ft.TextField(label="Fecha de caducidad (YYYY-MM-DD)")
     categoria_dropdown = ft.Dropdown(label="Categoría", options=[])
+
+    # Campo de búsqueda por código de barras
+    buscar_codigo = ft.TextField(
+        label="Buscar Código de Barras",
+        hint_text="Ingresa código",
+        max_length=14,
+        width=200
+    )
+    buscar_button = ft.ElevatedButton(
+        text="Buscar",
+        on_click=lambda e: cargar_articulos(buscar_codigo.value.strip())
+    )
+    # Función para limpiar búsqueda y mostrar todos los registros
+    def limpiar_busqueda(e):
+        buscar_codigo.value = ""
+        buscar_codigo.update()
+        cargar_articulos()
+
+    clear_button = ft.ElevatedButton(
+        text="Mostrar Todo",
+        on_click=limpiar_busqueda
+    )
+
     output = ft.Text("")
     articulos_list = ft.Column()
     botones = ft.Row()  # Registrar / Guardar+Cancelar
 
     def limpiar_campos():
+        nonlocal editing_id
         nombre.value = codigo_barras.value = descripcion.value = ""
         precio.value = precio_unitario_proveedor.value = stock.value = ""
         fecha_caducidad.value = ""
         categoria_dropdown.value = None
         output.value = ""
+        editing_id = None
+        actualizar_botones()
 
     def actualizar_botones():
         botones.controls.clear()
@@ -57,40 +84,61 @@ def main(page: ft.Page):
         conn.close()
         page.update()
 
-    def cargar_articulos():
+    def cargar_articulos(filtro_codigo=None):
         articulos_list.controls.clear()
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("""
-            SELECT a.id_articulo,
-                   a.nombre,
-                   a.codigo_barras,
-                   a.precio_venta,
-                   a.precio_unitario_proveedor,
-                   a.stock,
-                   c.nombre,
-                   a.fecha_caducidad
-              FROM Articulos a
-              JOIN Categorias c ON a.id_categoria = c.id_categoria
-        """)
-        for (id_art, nom, cb, pv, puprov, stk, cat_nombre, cad) in cursor.fetchall():
+        if filtro_codigo:
+            cursor.execute(
+                """
+                SELECT a.id_articulo,
+                       a.nombre,
+                       a.codigo_barras,
+                       a.precio_venta,
+                       a.precio_unitario_proveedor,
+                       a.stock,
+                       c.nombre,
+                       a.fecha_caducidad
+                  FROM Articulos a
+                  JOIN Categorias c ON a.id_categoria = c.id_categoria
+                 WHERE a.codigo_barras = %s
+                """, (filtro_codigo,)
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT a.id_articulo,
+                       a.nombre,
+                       a.codigo_barras,
+                       a.precio_venta,
+                       a.precio_unitario_proveedor,
+                       a.stock,
+                       c.nombre,
+                       a.fecha_caducidad
+                  FROM Articulos a
+                  JOIN Categorias c ON a.id_categoria = c.id_categoria
+                """
+            )
+        rows = cursor.fetchall()
+        for id_art, nom, cb, pv, puprov, stk, cat_nombre, cad in rows:
             articulos_list.controls.append(
                 ft.Row([
                     ft.Text(
-                        f"{id_art} – {nom} – [{cb}] – "
-                        f"Venta: ${pv:.2f} – Prov: ${puprov:.2f} – "
-                        f"Stock: {stk}u – {cat_nombre} – {cad}",
+                        f"{id_art} – {nom} – [{cb}] – Venta: ${pv:.2f} – Prov: ${puprov:.2f} – Stock: {stk}u – {cat_nombre} – {cad}",
                         expand=True
                     ),
-                    ft.IconButton(icon=ft.icons.EDIT,   on_click=lambda e, i=id_art: editar_articulo(i)),
+                    ft.IconButton(icon=ft.icons.EDIT, on_click=lambda e, i=id_art: editar_articulo(i)),
                     ft.IconButton(icon=ft.icons.DELETE, on_click=lambda e, i=id_art: eliminar_articulo(i))
                 ])
             )
         conn.close()
+        if filtro_codigo and not rows:
+            output.value = f"No se encontraron artículos con código {filtro_codigo}."
+        else:
+            output.value = ""
         page.update()
 
     def registrar_articulo(e):
-        # Validaciones básicas
         if not codigo_barras.value:
             output.value = "El código de barras es obligatorio."
             page.update()
@@ -99,31 +147,24 @@ def main(page: ft.Page):
             output.value = "Selecciona una categoría."
             page.update()
             return
-
         conn = get_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("""
-                INSERT INTO Articulos
-                  (nombre,
-                   codigo_barras,
-                   descripcion,
-                   precio_venta,
-                   precio_unitario_proveedor,
-                   stock,
-                   id_categoria,
-                   fecha_caducidad)
+            cursor.execute(
+                """
+                INSERT INTO Articulos (nombre, codigo_barras, descripcion, precio_venta, precio_unitario_proveedor, stock, id_categoria, fecha_caducidad)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """, (
-                nombre.value,
-                codigo_barras.value,
-                descripcion.value,
-                float(precio.value),
-                float(precio_unitario_proveedor.value),
-                int(stock.value),
-                categoria_dropdown.value,
-                fecha_caducidad.value
-            ))
+                """, (
+                    nombre.value,
+                    codigo_barras.value,
+                    descripcion.value,
+                    float(precio.value),
+                    float(precio_unitario_proveedor.value),
+                    int(stock.value),
+                    categoria_dropdown.value,
+                    fecha_caducidad.value
+                )
+            )
             conn.commit()
             output.value = "Artículo registrado"
             limpiar_campos()
@@ -151,18 +192,12 @@ def main(page: ft.Page):
         editing_id = id_art
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("""
-            SELECT nombre,
-                   codigo_barras,
-                   descripcion,
-                   precio_venta,
-                   precio_unitario_proveedor,
-                   stock,
-                   id_categoria,
-                   fecha_caducidad
-              FROM Articulos
-             WHERE id_articulo = %s
-        """, (id_art,))
+        cursor.execute(
+            """
+            SELECT nombre, codigo_barras, descripcion, precio_venta, precio_unitario_proveedor, stock, id_categoria, fecha_caducidad
+            FROM Articulos WHERE id_articulo = %s
+            """, (id_art,)
+        )
         result = cursor.fetchone()
         conn.close()
         if result:
@@ -176,7 +211,6 @@ def main(page: ft.Page):
 
     def guardar_cambios(e):
         nonlocal editing_id
-        # Validaciones
         if not codigo_barras.value:
             output.value = "El código de barras es obligatorio."
             page.update()
@@ -185,32 +219,27 @@ def main(page: ft.Page):
             output.value = "Selecciona una categoría."
             page.update()
             return
-
         conn = get_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE Articulos
-                   SET nombre=%s,
-                       codigo_barras=%s,
-                       descripcion=%s,
-                       precio_venta=%s,
-                       precio_unitario_proveedor=%s,
-                       stock=%s,
-                       id_categoria=%s,
-                       fecha_caducidad=%s
-                 WHERE id_articulo=%s
-            """, (
-                nombre.value,
-                codigo_barras.value,
-                descripcion.value,
-                float(precio.value),
-                float(precio_unitario_proveedor.value),
-                int(stock.value),
-                categoria_dropdown.value,
-                fecha_caducidad.value,
-                editing_id
-            ))
+                SET nombre=%s, codigo_barras=%s, descripcion=%s, precio_venta=%s,
+                    precio_unitario_proveedor=%s, stock=%s, id_categoria=%s, fecha_caducidad=%s
+                WHERE id_articulo=%s
+                """, (
+                    nombre.value,
+                    codigo_barras.value,
+                    descripcion.value,
+                    float(precio.value),
+                    float(precio_unitario_proveedor.value),
+                    int(stock.value),
+                    categoria_dropdown.value,
+                    fecha_caducidad.value,
+                    editing_id
+                )
+            )
             conn.commit()
             output.value = "Artículo actualizado"
             limpiar_campos()
@@ -223,26 +252,18 @@ def main(page: ft.Page):
             cargar_articulos()
 
     def cancelar_edicion(e):
-        nonlocal editing_id
         limpiar_campos()
-        editing_id = None
         output.value = "Edición cancelada"
         actualizar_botones()
 
-    # Configuración de la UI
+    # UI
     page.add(
         ft.Text("Registrar / Editar Artículo", size=20, weight="bold"),
-        nombre,
-        codigo_barras,
-        descripcion,
-        precio,
-        precio_unitario_proveedor,
-        stock,
-        fecha_caducidad,
-        categoria_dropdown,
-        botones,
-        output,
+        nombre, codigo_barras, descripcion, precio, precio_unitario_proveedor, stock, fecha_caducidad, categoria_dropdown,
+        botones, output,
         ft.Divider(),
+        # Filtro de búsqueda
+        ft.Row([buscar_codigo, buscar_button, clear_button]),
         ft.Text("Lista de Artículos", size=20),
         articulos_list
     )
@@ -251,5 +272,6 @@ def main(page: ft.Page):
     cargar_categorias()
     actualizar_botones()
     cargar_articulos()
+
 
 ft.app(target=main)
