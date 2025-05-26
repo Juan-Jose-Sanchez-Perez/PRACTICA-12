@@ -5,6 +5,6 @@ def get_connection():
         host="localhost",
         user="root",        # Cambia esto
         password="Juanjose/11", # Cambia esto
-        database="Super_Uno",
+        database="super_uno",
         port=3310
     )
