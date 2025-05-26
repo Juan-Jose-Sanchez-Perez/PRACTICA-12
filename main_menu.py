@@ -10,8 +10,12 @@ def main(page: ft.Page):
 
     crud_scripts = {
         "Proveedores": "crud_proveedores.py",
+        "Categorías": "crud_categorias.py",
+        "Artículos": "crud_articulos.py",
         "Clientes": "crud_clientes.py",
         "Empleados": "crud_empleados.py",
+        "Compras": "crud_compras.py",
+        "Ventas": "crud_ventas.py"
     }
 
     def lanzar_script(script):

@@ -5,11 +5,15 @@ def main(page: ft.Page):
     page.title = "CRUD Clientes"
     page.scroll = ft.ScrollMode.AUTO
 
-    # Estado de edición: None = modo registro, otherwise = teléfono del cliente en edición
+    
     editing_tel = None
 
     # Campos de entrada
-    telefono = ft.TextField(label="Teléfono")
+    telefono = ft.TextField(
+        label="Teléfono",
+        max_length=10,                            
+        keyboard_type=ft.KeyboardType.NUMBER
+    )
     nombre = ft.TextField(label="Nombre")
     correo = ft.TextField(label="Correo")
     direccion = ft.TextField(label="Dirección")
@@ -19,7 +23,8 @@ def main(page: ft.Page):
 
     def limpiar_campos():
         telefono.value = nombre.value = correo.value = direccion.value = ""
-        output.value = ""
+        # no limpiamos output aquí para preservar mensajes de error/validación
+        page.update()
 
     def actualizar_botones():
         botones.controls.clear()
@@ -57,6 +62,12 @@ def main(page: ft.Page):
 
     # Registrar nuevo cliente
     def registrar_cliente(e):
+        # Validación de teléfono
+        if len(telefono.value or "") != 10 or not telefono.value.isdigit():
+            output.value = "El teléfono debe tener exactamente 10 dígitos numéricos."
+            page.update()
+            return
+
         conn = get_connection()
         cursor = conn.cursor()
         try:

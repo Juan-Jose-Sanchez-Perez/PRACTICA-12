@@ -5,7 +5,7 @@ def main(page: ft.Page):
     page.title = "CRUD Empleados"
     page.scroll = ft.ScrollMode.AUTO
 
-    # Estado de edición: None = modo registro; si no, el id del empleado en edición
+    
     editing_id = None
 
     # Campos del formulario
@@ -158,7 +158,7 @@ def main(page: ft.Page):
         output.value = "Edición cancelada"
         actualizar_botones()
 
-    # Montaje de la UI
+    
     page.add(
         ft.Text("Registrar / Editar Empleado", size=20, weight="bold"),
         nombre,
