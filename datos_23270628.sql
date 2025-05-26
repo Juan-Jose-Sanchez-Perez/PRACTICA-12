@@ -52,8 +52,8 @@ INSERT INTO articulos (
   ('Coca-Cola',                 '7501055310227', 'Coca-Cola de 2.5 litros',                          42, 1, 38, 3, '2025-10-03'),
   ('Bida Fresa',                '7501013191219', 'Jugar sabor a fresa',                              15, 1, 12, 2, '2025-06-24'),
   ('Jugo de manzana',           '7501013122190', 'Jugo jumex sabor manzana',                         25, 1, 21, 2, '2025-07-16'),
-  ('Boing de mango',            '7501017351284', 'Boing sabor mango, el mejor de todos',             17, 1, 15, 2, '2025-05-29'),
+  ('Boing de mango',            '7501039400449', 'Boing sabor mango, el mejor de todos',             17, 1, 15, 2, '2025-05-29'),
   ('Rancheritos',               '7500478001620', 'Rancheritos muy good con salsa',                   15, 1, 12, 1, '2025-09-03'),
-  ('Sabrita Crujiente Jalapeño','7501011145719', 'Aque no puedes comer sola una',                     17, 1, 14, 1, '2025-09-03'),
-  ('pepsi',                     '7501047826493', 'Refresco de 2 litros',                             32, 1, 29, 3, '2025-05-27'),
-  ('Big-Cola',                  '7501025487632', 'Refresco de 3 litros superior a la Coca-Cola',     29, 1, 25, 3, '2025-07-07');
+  ('Sabrita Crujiente Jalapeño','7501011145719', 'Aque no puedes comer sola una',                    17, 1, 14, 1, '2025-09-03'),
+  ('pepsi',                     '7501031311606', 'Refresco de 2 litros',                             32, 1, 29, 3, '2025-05-27'),
+  ('Fanta naranja',             '7501055303779', 'Refresco de 600 ml superior a la Coca-Cola',       29, 1, 25, 3, '2025-07-07');
