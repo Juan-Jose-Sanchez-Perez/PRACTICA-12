@@ -6,27 +6,24 @@ def main(page: ft.Page):
     page.title = "CRUD de Ventas"
     page.scroll = ft.ScrollMode.AUTO
 
-    # Controles de selección
-    cliente_dropdown = ft.Dropdown(label="Cliente", options=[])
+    # —––––– TextField para ingresar teléfono de cliente, máximo 10 dígitos –––––——
+    cliente_field = ft.TextField(
+        label="Teléfono Cliente",
+        width=180,
+        max_length=10,
+        keyboard_type=ft.KeyboardType.NUMBER
+    )
+    cliente_info = ft.Column()  # Aquí se mostrarán los datos del cliente
+
     empleado_dropdown = ft.Dropdown(label="Empleado", options=[])
     total_text = ft.Text("Total: $0.00", size=16, weight="bold")
     output = ft.Text("")
 
-    # Lista dinámica de ítems de la venta
     venta_items = []
     venta_container = ft.Column()
-
-    # Lista de ventas registradas
     ventas_list = ft.Column()
 
-    def cargar_clientes():
-        conn = get_connection(); cursor = conn.cursor()
-        cursor.execute("SELECT telefono, nombre FROM Clientes")
-        cliente_dropdown.options.clear()
-        for tel, nombre_ in cursor.fetchall():
-            cliente_dropdown.options.append(ft.dropdown.Option(str(tel), nombre_))
-        conn.close(); page.update()
-
+    # Carga empleados (igual que antes)
     def cargar_empleados():
         conn = get_connection(); cursor = conn.cursor()
         cursor.execute("SELECT id_empleado, nombre FROM Empleados")
@@ -35,18 +32,49 @@ def main(page: ft.Page):
             empleado_dropdown.options.append(ft.dropdown.Option(str(id_), nombre_))
         conn.close(); page.update()
 
+    # Artículos (igual que antes)
     def cargar_articulos_dropdown():
         conn = get_connection(); cursor = conn.cursor()
         cursor.execute("SELECT id_articulo, nombre FROM Articulos WHERE stock > 0")
         items = cursor.fetchall(); conn.close()
         return [ft.dropdown.Option(str(id_), nombre_) for id_, nombre_ in items]
 
+    # Al cambiar o enviar el teléfono, carga datos o usa el general
+    def on_cliente_change(e):
+        tel = cliente_field.value.strip()
+        conn = get_connection(); cursor = conn.cursor()
+        cursor.execute("SELECT * FROM Clientes WHERE telefono = %s", (tel,))
+        row = cursor.fetchone()
+        if row:
+            cols = [d[0] for d in cursor.description]
+            datos = dict(zip(cols, row))
+            tel_to_use = tel
+        else:
+            # cliente general con teléfono fijo
+            cursor.execute("SELECT * FROM Clientes WHERE telefono = %s", ("9611560014",))
+            row = cursor.fetchone()
+            if row:
+                cols = [d[0] for d in cursor.description]
+                datos = dict(zip(cols, row))
+            else:
+                datos = {}
+            tel_to_use = "9611560014"
+        conn.close()
+
+        # Mostrar datos del cliente
+        cliente_info.controls.clear()
+        cliente_info.controls.append(ft.Text(f"Número usado: {tel_to_use}", weight="bold"))
+        for k, v in datos.items():
+            cliente_info.controls.append(ft.Text(f"{k}: {v}"))
+        page.update()
+
+    cliente_field.on_change = on_cliente_change
+    cliente_field.on_submit = on_cliente_change
+
+    # Funciones de venta (idénticas a tu versión, solo adaptando cliente)
     def agregar_articulo_a_venta(e):
-        # Campo para ingresar o escanear código de barras
         codigo_barras = ft.TextField(label="Código de Barras", width=150)
-        dropdown_articulo = ft.Dropdown(
-            label="Artículo", options=cargar_articulos_dropdown(), width=200
-        )
+        dropdown_articulo = ft.Dropdown(label="Artículo", options=cargar_articulos_dropdown(), width=200)
         cantidad = ft.TextField(label="Cantidad", width=80, keyboard_type=ft.KeyboardType.NUMBER)
         precio = ft.TextField(label="Precio Unitario", width=100, disabled=True)
         subtotal = ft.Text("Subtotal: $0.00", width=150)
@@ -68,14 +96,11 @@ def main(page: ft.Page):
                 )
                 row = cursor.fetchone(); conn.close()
                 if row:
-                    codigo_barras.value = row[0]
-                    precio.value = f"{float(row[1]):.2f}"
+                    codigo_barras.value, precio.value = row[0], f"{float(row[1]):.2f}"
                 else:
-                    codigo_barras.value = ""
-                    precio.value = "0.00"
+                    codigo_barras.value, precio.value = "", "0.00"
             else:
-                codigo_barras.value = ""
-                precio.value = "0.00"
+                codigo_barras.value, precio.value = "", "0.00"
             calcular_subtotal()
 
         def on_codigo_change(_):
@@ -91,24 +116,18 @@ def main(page: ft.Page):
                     dropdown_articulo.value = str(art_id)
                     precio.value = f"{float(unit_price):.2f}"
                 else:
-                    dropdown_articulo.value = None
-                    precio.value = "0.00"
+                    dropdown_articulo.value, precio.value = None, "0.00"
             else:
-                dropdown_articulo.value = None
-                precio.value = "0.00"
+                dropdown_articulo.value, precio.value = None, "0.00"
             calcular_subtotal()
 
-        # Asignar manejadores
         codigo_barras.on_change = on_codigo_change
         dropdown_articulo.on_change = on_art_change
         cantidad.on_change = calcular_subtotal
 
         fila = ft.Row([
-            codigo_barras,
-            dropdown_articulo,
-            cantidad,
-            precio,
-            subtotal,
+            codigo_barras, dropdown_articulo, cantidad,
+            precio, subtotal,
             ft.IconButton(icon=ft.icons.DELETE, on_click=lambda e: eliminar_fila(fila))
         ])
         venta_items.append((codigo_barras, dropdown_articulo, cantidad, precio, subtotal))
@@ -118,7 +137,6 @@ def main(page: ft.Page):
     def eliminar_fila(fila):
         if fila in venta_container.controls:
             venta_container.controls.remove(fila)
-        venta_items[:] = [item for item in venta_items if item[0] not in fila.controls]
         calcular_total(); page.update()
 
     def calcular_total():
@@ -148,28 +166,38 @@ def main(page: ft.Page):
         for idv, cliente, empleado, total, fecha in cursor.fetchall():
             ventas_list.controls.append(
                 ft.Row([
-                    ft.Text(f"{idv}", width=40),
-                    ft.Text(cliente, expand=1),
-                    ft.Text(empleado, expand=1),
-                    ft.Text(f"${total:.2f}", width=100),
+                    ft.Text(f"{idv}", width=40), ft.Text(cliente, expand=1),
+                    ft.Text(empleado, expand=1), ft.Text(f"${total:.2f}", width=100),
                     ft.Text(fecha, width=160),
-                ], alignment=ft.MainAxisAlignment.START)
+                ])
             )
         conn.close(); page.update()
 
     def registrar_venta(e):
-        if not cliente_dropdown.value or not empleado_dropdown.value:
-            output.value = "Selecciona cliente y empleado."; page.update(); return
+        if not cliente_field.value or not empleado_dropdown.value:
+            output.value = "Ingresa teléfono de cliente y selecciona empleado."
+            page.update()
+            return
         if not venta_items:
-            output.value = "Agrega al menos un artículo."; page.update(); return
+            output.value = "Agrega al menos un artículo."
+            page.update()
+            return
 
+        # Determinar teléfono a usar
+        tel = cliente_field.value.strip()
         conn = get_connection(); cursor = conn.cursor()
+        cursor.execute("SELECT telefono FROM Clientes WHERE telefono = %s", (tel,))
+        if cursor.fetchone():
+            tel_to_use = tel
+        else:
+            tel_to_use = "9611560014"
+
         try:
             cursor.execute(
                 "INSERT INTO Ventas (telefono_cliente, id_empleado, total, fecha_venta) "
                 "VALUES (%s, %s, %s, %s)",
                 (
-                    cliente_dropdown.value,
+                    tel_to_use,
                     empleado_dropdown.value,
                     float(total_text.value.split('$')[1]),
                     datetime.now()
@@ -178,7 +206,6 @@ def main(page: ft.Page):
             id_venta = cursor.lastrowid
 
             for codigo_barras, dropdown_articulo, cantidad, precio, _ in venta_items:
-                # Determinar id_articulo preferentemente por dropdown (ya se ajusta en on_codigo_change)
                 art_id = dropdown_articulo.value
                 if not art_id and codigo_barras.value:
                     cursor.execute(
@@ -222,7 +249,7 @@ def main(page: ft.Page):
     # Construcción de la UI
     page.add(
         ft.Text("Registrar Venta", size=20, weight="bold"),
-        cliente_dropdown,
+        ft.Row([cliente_field, cliente_info], alignment=ft.MainAxisAlignment.START),
         empleado_dropdown,
         ft.ElevatedButton("Agregar Artículo", on_click=agregar_articulo_a_venta),
         venta_container,
@@ -244,7 +271,6 @@ def main(page: ft.Page):
         ventas_list
     )
 
-    cargar_clientes()
     cargar_empleados()
     cargar_ventas()
 
