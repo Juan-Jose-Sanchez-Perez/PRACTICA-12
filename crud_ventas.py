@@ -379,7 +379,7 @@ def main(page: ft.Page):
             tel = cliente_field.value.strip()
             conn = get_connection(); cursor = conn.cursor()
             cursor.execute("SELECT telefono FROM Clientes WHERE telefono = %s", (tel,))
-            tel_to_use = tel if cursor.fetchone() else "9611560014"
+            tel_to_use = tel if cursor.fetchone() else "999"
             
             try:
                 cursor.execute("INSERT INTO Ventas (telefono_cliente, id_empleado, total, fecha_venta) VALUES (%s, %s, %s, %s)", 
