@@ -13,16 +13,17 @@ INSERT INTO empleados (nombre, puesto, salario, fecha_contratacion, turno) VALUE
 
 -- Poblar tabla clientes
 INSERT INTO clientes (telefono, nombre, correo, direccion) VALUES
-  ('9613456780','Miguel Ángel Torres López',       'miguel.torres@gmail.com',       'Calle Olivo No. 202'),
-  ('9614567890','Sofía Isabel Hernández Vargas',  'sofia.hernandez@outlook.com',   'Av. Insurgentes 345'),
-  ('9615678901','Diego Andrés Martínez Rivera',   'diego.martinez@gmail.com',      'Calle Lago No. 78'),
-  ('9616789012','Lucía Fernanda Ramos Ortiz',     'lucia.ramos@outlook.com',       'Av. Reforma 100'),
-  ('9617890123','Fernando José Cruz Sánchez',     'fernando.cruz@gmail.com',       'Calle Juárez 50'),
-  ('9618901234','Karina Sofía López Martínez',    'karina.lopez@outlook.com',      'Av. Universidad 120'),
+  ('9613456780','Miguel Ángel Torres López'     , 'miguel.torres@gmail.com',       'Calle Olivo No. 202'),
+  ('9614567890','Sofía Isabel Hernández Vargas' , 'sofia.hernandez@outlook.com',   'Av. Insurgentes 345'),
+  ('9615678901','Diego Andrés Martínez Rivera'  , 'diego.martinez@gmail.com',      'Calle Lago No. 78'),
+  ('9616789012','Lucía Fernanda Ramos Ortiz'    , 'lucia.ramos@outlook.com',       'Av. Reforma 100'),
+  ('9617890123','Fernando José Cruz Sánchez'    , 'fernando.cruz@gmail.com',       'Calle Juárez 50'),
+  ('9618901234','Karina Sofía López Martínez'   , 'karina.lopez@outlook.com',      'Av. Universidad 120'),
   ('9619012345','Javier Alejandro Sánchez Pérez', 'javier.sanchez@gmail.com',      'Calle Hidalgo 215'),
-  ('9610123456','María Fernanda Ruiz González',   'maria.fernanda@outlook.com',    'Av. Central 89'),
-  ('9617898524','Carlos Manuel Díaz Hernández',   'carlos@outlook.com',            'Av Central No° 123'),
-  ('9612463791','Ana Patricia Ruiz López',        'anita_ruiz@gmail.com',          'Calle Central No° 456');
+  ('9610123456','María Fernanda Ruiz González'  , 'maria.fernanda@outlook.com',    'Av. Central 89'),
+  ('9617898524','Carlos Manuel Díaz Hernández'  , 'carlos@outlook.com',            'Av Central No° 123'),
+  ('9612463791','Ana Patricia Ruiz López'       , 'anita_ruiz@gmail.com',          'Calle Central No° 456'),
+  ('999'       ,'Cliente General'               , 'general_client15@gmail.com',    'Calle tamarindos No° 325');
 
 -- Poblar tabla proveedores
 INSERT INTO proveedores (nombre, telefono, contacto, rfc) VALUES
@@ -48,12 +49,23 @@ INSERT INTO articulos (
   nombre, codigo_barras, descripcion, precio_venta, stock,
   precio_unitario_proveedor, id_categoria, fecha_caducidad
 ) VALUES
-  ('sabritones',                '7501011149205', 'sabritones sabor chile y limon',                   15, 1, 12, 1, '2025-12-08'),
-  ('Coca-Cola',                 '7501055310227', 'Coca-Cola de 2.5 litros',                          42, 1, 38, 3, '2025-10-03'),
-  ('Bida Fresa',                '7501013191219', 'Jugar sabor a fresa',                              15, 1, 12, 2, '2025-06-24'),
-  ('Jugo de manzana',           '7501013122190', 'Jugo jumex sabor manzana',                         25, 1, 21, 2, '2025-07-16'),
-  ('Boing de mango',            '7501039400449', 'Boing sabor mango, el mejor de todos',             17, 1, 15, 2, '2025-05-29'),
-  ('Rancheritos',               '7500478001620', 'Rancheritos muy good con salsa',                   15, 1, 12, 1, '2025-09-03'),
-  ('Sabrita Crujiente Jalapeño','7501011145719', 'Aque no puedes comer sola una',                    17, 1, 14, 1, '2025-09-03'),
-  ('pepsi',                     '7501031311606', 'Refresco de 2 litros',                             32, 1, 29, 3, '2025-05-27'),
-  ('Fanta naranja',             '7501055303779', 'Refresco de 600 ml superior a la Coca-Cola',       29, 1, 25, 3, '2025-07-07');
+  ('sabritones',                    '7501011149205', 'sabritones sabor chile y limon',                           15, 150, 12, 1, '2025-12-08'),
+  ('Coca-Cola',                     '7501055310227', 'Coca-Cola de 2.5 litros',                                  42, 200, 38, 3, '2025-10-03'),
+  ('Bida Fresa',                    '7501013191219', 'Jugar sabor a fresa',                                      15, 259, 12, 2, '2025-06-24'),
+  ('Jugo de manzana',               '7501013122190', 'Jugo jumex sabor manzana',                                 25, 142, 21, 2, '2025-07-16'),
+  ('Boing de mango',                '7501039400449', 'Boing sabor mango, el mejor de todos',                     17, 200, 15, 2, '2025-05-29'),
+  ('Rancheritos',                   '7500478001620', 'Rancheritos muy good con salsa',                           15, 200, 12, 1, '2025-09-03'),
+  ('Sabrita Crujiente Jalapeño',    '7501011145719', 'Aque no puedes comer sola una',                            17, 254, 14, 1, '2025-09-03'),
+  ('pepsi',                         '7501031311606', 'Refresco de 2 litros',                                     32, 364, 29, 3, '2025-05-27'),
+  ('Fanta naranja',                 '7501055303779', 'Refresco de 600 ml superior a la Coca-Cola',               29, 500, 25, 3, '2025-07-07'),
+  ('Big-Cola',                      '7507531596482', 'Refresco muy good para matar el gusto de una coquita fria',35, 554, 30, 3, '2025-06-10')
+  ('Leche Lala Entera 1L',          '7501003100597', 'Leche Lala entera en envase de 1 litro',                   28, 100, 22, 5, '2025-11-15'),
+  ('Pan Bimbo Familiar',            '7500625339062', 'Pan de caja blanco Bimbo paquete familiar 680g',           35, 80,  27, 6, '2025-08-10'),
+  ('Gansito Marinela',              '7501004657021', 'Pastelito Gansito Marinela con relleno de fresa',          12, 150, 9,  1, '2025-09-05'),
+  ('Agua Bonafont 600 ml',          '7501055013678', 'Botella de agua purificada Bonafont 600 ml',               12, 300, 8,  2, '2026-01-20'),
+  ('Cheetos Crunchy 165g',          '7501072605516', 'Cheetos sabor queso bolsa 165 gramos',                     22, 200, 16, 1, '2025-10-30'),
+  ('Mentos Menta Peg bag 50g',      '7500435130105', 'Caramelos Mentos sabor menta bolsa de 50 gramos',          8,  250, 5,  4, '2026-02-28'),
+  ('Café Instantáneo Nescafé 200g', '7500435053030', 'Café soluble Nescafé Clásico en frasco de 200g',           75, 60,  55, 7, '2026-03-15'),
+  ('Jugo Del Valle Multifrutas 1L', '7501017545849', 'Jugo Del Valle multifrutas en envase de 1 litro',          30, 120, 24, 2, '2025-12-01'),
+  ('Sabritas Saladas 170g',         '7501000337103', 'Papas Sabritas saladas bolsa de 170 gramos',               20, 180, 14, 1, '2025-11-25'),
+  ('Yoghurt Yoplait Fresa 150g',    '7501050362013', 'Yoghurt bebible Yoplait sabor fresa 150 gramos',           14, 90,  10, 5, '2025-09-12');
