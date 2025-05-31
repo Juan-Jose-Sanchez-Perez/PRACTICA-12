@@ -265,14 +265,14 @@ def main(page: ft.Page):
                 datos = dict(zip(cols, row))
                 tel_to_use = tel
             else:
-                cursor.execute("SELECT * FROM Clientes WHERE telefono = %s", ("9611560014",))
+                cursor.execute("SELECT * FROM Clientes WHERE telefono = %s", ("999",))
                 row = cursor.fetchone()
                 if row:
                     cols = [d[0] for d in cursor.description]
                     datos = dict(zip(cols, row))
                 else:
                     datos = {}
-                tel_to_use = "9611560014"
+                tel_to_use = "999"
             conn.close()
 
             cliente_info.controls.clear()
