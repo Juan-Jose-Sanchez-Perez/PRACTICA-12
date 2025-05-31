@@ -13,6 +13,7 @@ def main(page: ft.Page):
     output             = ft.Text("")
 
     # Filas de ítems a comprar y contenedor
+    # Ahora almacenamos tuplas (codigo_barras, dropdown_articulo, cantidad, costo, subtotal)
     compra_items     = []
     compra_container = ft.Column()
 
@@ -26,7 +27,8 @@ def main(page: ft.Page):
         proveedor_dropdown.options.clear()
         for id_, nombre_ in cursor.fetchall():
             proveedor_dropdown.options.append(ft.dropdown.Option(str(id_), nombre_))
-        conn.close(); page.update()
+        conn.close()
+        page.update()
 
     def cargar_empleados():
         conn = get_connection(); cursor = conn.cursor()
@@ -34,20 +36,56 @@ def main(page: ft.Page):
         empleado_dropdown.options.clear()
         for id_, nombre_ in cursor.fetchall():
             empleado_dropdown.options.append(ft.dropdown.Option(str(id_), nombre_))
-        conn.close(); page.update()
+        conn.close()
+        page.update()
 
-    def cargar_articulos_dropdown():
+    # Devuelve opciones de artículos según categoría->proveedor
+    def cargar_articulos_por_proveedor(id_prov):
         conn = get_connection(); cursor = conn.cursor()
-        cursor.execute("SELECT id_articulo, nombre FROM Articulos")
-        items = cursor.fetchall(); conn.close()
+        cursor.execute(
+            "SELECT a.id_articulo, a.nombre "
+            "FROM Articulos a "
+            "JOIN Categorias c ON a.id_categoria = c.id_categoria "
+            "WHERE c.id_proveedor = %s",
+            (id_prov,)
+        )
+        items = cursor.fetchall()
+        conn.close()
         return [ft.dropdown.Option(str(id_), nombre_) for id_, nombre_ in items]
+
+    # Cuando cambia el proveedor, actualizamos cada fila existente:
+    def actualizar_articulos_filas(_=None):
+        # Si no hay proveedor seleccionado, dejamos todos los dropdown_articulo vacíos
+        prov_id = proveedor_dropdown.value
+        for codigo_barras, dropdown_articulo, cantidad, costo, subtotal in compra_items:
+            # Actualizamos opciones
+            if prov_id:
+                dropdown_articulo.options = cargar_articulos_por_proveedor(prov_id)
+            else:
+                dropdown_articulo.options = []
+            # Limpiar valor y campos relacionados
+            dropdown_articulo.value = None
+            codigo_barras.value = ""
+            costo.value = "0.00"
+            subtotal.value = "Subtotal: $0.00"
+        # Recalcular total general (queda en cero si limpiamos filas)
+        total_text.value = "Total: $0.00"
+        page.update()
+
+    proveedor_dropdown.on_change = actualizar_articulos_filas
 
     # --- Agregar fila de detalle de compra ---
     def agregar_articulo_a_compra(e):
-        # Campo para código de barras
+        if not proveedor_dropdown.value:
+            output.value = "Selecciona primero un proveedor."
+            page.update()
+            return
+
         codigo_barras = ft.TextField(label="Código de Barras", width=150)
         dropdown_articulo = ft.Dropdown(
-            label="Artículo", options=cargar_articulos_dropdown(), width=200
+            label="Artículo",
+            options=cargar_articulos_por_proveedor(proveedor_dropdown.value),
+            width=200
         )
         cantidad = ft.TextField(
             label="Cantidad", width=80, keyboard_type=ft.KeyboardType.NUMBER
@@ -68,7 +106,7 @@ def main(page: ft.Page):
                 subtotal.value = "Subtotal: $0.00"
             # recalcular total general
             total = 0.0
-            for _, ct, cs, _ in compra_items:
+            for _, _, ct, cs, _ in compra_items:
                 try:
                     total += int(ct.value) * float(cs.value)
                 except:
@@ -80,7 +118,8 @@ def main(page: ft.Page):
             if dropdown_articulo.value:
                 conn = get_connection(); cursor = conn.cursor()
                 cursor.execute(
-                    "SELECT codigo_barras, precio_unitario_proveedor FROM Articulos WHERE id_articulo = %s",
+                    "SELECT codigo_barras, precio_unitario_proveedor "
+                    "FROM Articulos WHERE id_articulo = %s",
                     (dropdown_articulo.value,)
                 )
                 row = cursor.fetchone(); conn.close()
@@ -99,8 +138,11 @@ def main(page: ft.Page):
             if codigo_barras.value:
                 conn = get_connection(); cursor = conn.cursor()
                 cursor.execute(
-                    "SELECT id_articulo, precio_unitario_proveedor FROM Articulos WHERE codigo_barras = %s",
-                    (codigo_barras.value,)
+                    "SELECT a.id_articulo, a.precio_unitario_proveedor "
+                    "FROM Articulos a "
+                    "JOIN Categorias c ON a.id_categoria = c.id_categoria "
+                    "WHERE a.codigo_barras = %s AND c.id_proveedor = %s",
+                    (codigo_barras.value, proveedor_dropdown.value)
                 )
                 row = cursor.fetchone(); conn.close()
                 if row:
@@ -128,16 +170,22 @@ def main(page: ft.Page):
             subtotal,
             ft.IconButton(icon=ft.icons.DELETE, on_click=lambda e: eliminar_fila(fila))
         ])
-        compra_items.append((codigo_barras, cantidad, costo, subtotal))
+
+        compra_items.append((codigo_barras, dropdown_articulo, cantidad, costo, subtotal))
         compra_container.controls.append(fila)
         page.update()
 
     def eliminar_fila(fila):
+        # Encontrar y remover la tupla correspondiente en compra_items
+        for tupla in compra_items:
+            if tupla[0] in fila.controls:  # tupla[0] es codigo_barras
+                compra_items.remove(tupla)
+                break
+
         compra_container.controls.remove(fila)
-        compra_items[:] = [item for item in compra_items if item[0] not in fila.controls]
         # recalcular total
         total = 0.0
-        for _, ct, cs, _ in compra_items:
+        for _, _, ct, cs, _ in compra_items:
             try:
                 total += int(ct.value) * float(cs.value)
             except:
@@ -168,7 +216,7 @@ def main(page: ft.Page):
             )
             id_compra = cursor.lastrowid
 
-            for codigo_barras, cantidad, costo, subtotal in compra_items:
+            for codigo_barras, dropdown_articulo, cantidad, costo, subtotal in compra_items:
                 art_id = None
                 # obtener id_articulo desde código o dropdown
                 if codigo_barras.value:
