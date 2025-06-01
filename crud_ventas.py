@@ -37,9 +37,9 @@ def main(page: ft.Page):
 
     def mostrar_ticket_efectivo(cliente_nombre, empleado_nombre, items, total, pago_efectivo, cambio):
         """Muestra ventana emergente con el ticket de venta en efectivo"""
-        
-        # Crear contenido del ticket
-        ticket_content = ft.Column([
+
+        # Encabezado del ticket
+        header = ft.Column([
             ft.Text("🧾 TICKET DE VENTA", size=20, weight="bold", text_align=ft.TextAlign.CENTER),
             ft.Divider(),
             ft.Text(f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", size=12),
@@ -48,57 +48,79 @@ def main(page: ft.Page):
             ft.Text("Método de Pago: 💰 EFECTIVO", size=12, weight="bold"),
             ft.Divider(),
             ft.Text("PRODUCTOS:", size=14, weight="bold"),
-        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
-        
-        # Agregar items del ticket
-        for item in items:
-            ticket_content.controls.append(
+        ], tight=True, spacing=4)
+
+        # Contenedor scrollable solo para la lista de productos
+        productos_list = ft.Column(
+            scroll=ft.ScrollMode.AUTO,
+            spacing=2,
+            expand=True,
+            controls=[
                 ft.Row([
                     ft.Text(item['nombre'], expand=2),
                     ft.Text(f"{item['cantidad']}", width=40),
                     ft.Text(f"${item['precio']:.2f}", width=60),
                     ft.Text(f"${item['subtotal']:.2f}", width=80),
-                ])
-            )
-        
-        # Agregar totales
-        ticket_content.controls.extend([
+                ]) for item in items
+            ]
+        )
+
+        # Totales al pie del ticket
+        footer = ft.Column([
             ft.Divider(),
-            ft.Row([ft.Text("TOTAL:", weight="bold"), ft.Text(f"${total:.2f}", weight="bold")], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            ft.Row([ft.Text("EFECTIVO RECIBIDO:"), ft.Text(f"${pago_efectivo:.2f}")], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            ft.Row([ft.Text("CAMBIO:", weight="bold"), ft.Text(f"${cambio:.2f}", weight="bold")], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            ft.Row([ft.Text("TOTAL:", weight="bold"), ft.Text(f"${total:.2f}", weight="bold")],
+                   alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            ft.Row([ft.Text("EFECTIVO RECIBIDO:"), ft.Text(f"${pago_efectivo:.2f}")],
+                   alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            ft.Row([ft.Text("CAMBIO:", weight="bold"), ft.Text(f"${cambio:.2f}", weight="bold")],
+                   alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             ft.Divider(),
             ft.Text("¡Gracias por su compra!", size=14, weight="bold", text_align=ft.TextAlign.CENTER),
-        ])
-        
-        # Crear diálogo
+        ], tight=True, spacing=4)
+
+        # Contenedor principal del ticket, con altura fija
+        ticket_container = ft.Column(
+            [
+                header,
+                ft.Container(
+                    content=productos_list,
+                    height=200,  # altura fija para la sección de productos
+                    padding=ft.padding.only(top=4, bottom=4),
+                    bgcolor=ft.colors.GREY_100,
+                    border_radius=4,
+                    border=ft.border.all(1, ft.colors.GREY_300),
+                ),
+                footer,
+            ],
+            spacing=10
+        )
+
+        # Diálogo emergente
         dlg = ft.AlertDialog(
             modal=True,
             title=ft.Text("Venta Completada - Efectivo"),
             content=ft.Container(
-                content=ticket_content,
+                content=ticket_container,
                 width=350,
                 height=450,
                 padding=10,
                 bgcolor=ft.colors.WHITE,
-                border=ft.border.all(1, ft.colors.GREY_400)
+                border=ft.border.all(1, ft.colors.GREY_400),
             ),
             actions=[
                 ft.TextButton("Cerrar", on_click=lambda e: page.close(dlg))
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
-        
         page.open(dlg)
 
     def mostrar_ticket_tarjeta(cliente_nombre, empleado_nombre, items, total, numero_tarjeta):
         """Muestra ventana emergente con el ticket de venta con tarjeta"""
-        
-        # Enmascarar número de tarjeta (mostrar solo últimos 4 dígitos)
+
         tarjeta_enmascarada = "**** **** **** " + numero_tarjeta[-4:]
-        
-        # Crear contenido del ticket
-        ticket_content = ft.Column([
+
+        # Encabezado del ticket
+        header = ft.Column([
             ft.Text("🧾 TICKET DE VENTA", size=20, weight="bold", text_align=ft.TextAlign.CENTER),
             ft.Divider(),
             ft.Text(f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", size=12),
@@ -108,48 +130,71 @@ def main(page: ft.Page):
             ft.Text(f"Tarjeta: {tarjeta_enmascarada}", size=12),
             ft.Divider(),
             ft.Text("PRODUCTOS:", size=14, weight="bold"),
-        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
-        
-        # Agregar items del ticket
-        for item in items:
-            ticket_content.controls.append(
+        ], tight=True, spacing=4)
+
+        # Contenedor scrollable solo para la lista de productos
+        productos_list = ft.Column(
+            scroll=ft.ScrollMode.AUTO,
+            spacing=2,
+            expand=True,
+            controls=[
                 ft.Row([
                     ft.Text(item['nombre'], expand=2),
                     ft.Text(f"{item['cantidad']}", width=40),
                     ft.Text(f"${item['precio']:.2f}", width=60),
                     ft.Text(f"${item['subtotal']:.2f}", width=80),
-                ])
-            )
-        
-        # Agregar totales (sin cambio para tarjeta)
-        ticket_content.controls.extend([
+                ]) for item in items
+            ]
+        )
+
+        # Totales al pie del ticket
+        footer = ft.Column([
             ft.Divider(),
-            ft.Row([ft.Text("TOTAL:", weight="bold"), ft.Text(f"${total:.2f}", weight="bold")], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            ft.Row([ft.Text("PAGADO CON TARJETA:", weight="bold"), ft.Text(f"${total:.2f}", weight="bold")], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            ft.Row([ft.Text("CAMBIO:", weight="bold"), ft.Text("$0.00", weight="bold")], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            ft.Row([ft.Text("TOTAL:", weight="bold"), ft.Text(f"${total:.2f}", weight="bold")],
+                   alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            ft.Row([ft.Text("PAGADO CON TARJETA:", weight="bold"), ft.Text(f"${total:.2f}", weight="bold")],
+                   alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            ft.Row([ft.Text("CAMBIO:", weight="bold"), ft.Text("$0.00", weight="bold")],
+                   alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             ft.Divider(),
             ft.Text("TRANSACCIÓN APROBADA ✅", size=12, weight="bold", color=ft.colors.GREEN),
             ft.Text("¡Gracias por su compra!", size=14, weight="bold", text_align=ft.TextAlign.CENTER),
-        ])
-        
-        # Crear diálogo
+        ], tight=True, spacing=4)
+
+        # Contenedor principal del ticket, con altura fija
+        ticket_container = ft.Column(
+            [
+                header,
+                ft.Container(
+                    content=productos_list,
+                    height=200,  # altura fija para la sección de productos
+                    padding=ft.padding.only(top=4, bottom=4),
+                    bgcolor=ft.colors.GREY_100,
+                    border_radius=4,
+                    border=ft.border.all(1, ft.colors.GREY_300),
+                ),
+                footer,
+            ],
+            spacing=10
+        )
+
+        # Diálogo emergente
         dlg = ft.AlertDialog(
             modal=True,
             title=ft.Text("Venta Completada - Tarjeta"),
             content=ft.Container(
-                content=ticket_content,
+                content=ticket_container,
                 width=350,
                 height=450,
                 padding=10,
                 bgcolor=ft.colors.WHITE,
-                border=ft.border.all(1, ft.colors.GREY_400)
+                border=ft.border.all(1, ft.colors.GREY_400),
             ),
             actions=[
                 ft.TextButton("Cerrar", on_click=lambda e: page.close(dlg))
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
-        
         page.open(dlg)
 
     def nueva_venta_tab(e=None):
@@ -174,7 +219,7 @@ def main(page: ft.Page):
             width=200,
             value="efectivo"
         )
-        
+
         # Campos para tarjeta
         tarjeta_container = ft.Column(visible=False)
         numero_tarjeta = ft.TextField(
@@ -188,10 +233,10 @@ def main(page: ft.Page):
             width=150,
             max_length=4,
             keyboard_type=ft.KeyboardType.NUMBER,
-            password=True,  # Esto hace que se muestren asteriscos automáticamente
+            password=True,
             can_reveal_password=False
         )
-        
+
         # Campos para efectivo
         efectivo_container = ft.Column(visible=True)
         monto_efectivo = ft.TextField(
@@ -200,7 +245,7 @@ def main(page: ft.Page):
             keyboard_type=ft.KeyboardType.NUMBER
         )
         cambio_text = ft.Text("Cambio: $0.00", size=14, weight="bold", color=ft.colors.GREEN)
-        
+
         # Función para calcular cambio
         def calcular_cambio(e=None):
             try:
@@ -213,22 +258,22 @@ def main(page: ft.Page):
                 cambio_text.value = "Cambio: $0.00"
                 cambio_text.color = ft.colors.GREY
             page.update()
-        
+
         monto_efectivo.on_change = calcular_cambio
-        
+
         # Configurar containers de pago
         tarjeta_container.controls = [
             ft.Text("Datos de Tarjeta:", weight="bold"),
             numero_tarjeta,
             nip_tarjeta
         ]
-        
+
         efectivo_container.controls = [
             ft.Text("Pago en Efectivo:", weight="bold"),
             monto_efectivo,
             cambio_text
         ]
-        
+
         # Función para cambiar método de pago
         def cambiar_metodo_pago(e):
             if metodo_pago.value == "tarjeta":
@@ -238,7 +283,7 @@ def main(page: ft.Page):
                 tarjeta_container.visible = False
                 efectivo_container.visible = True
             page.update()
-        
+
         metodo_pago.on_change = cambiar_metodo_pago
 
         def cargar_empleados():
@@ -331,7 +376,8 @@ def main(page: ft.Page):
             dropdown_articulo.on_change = on_art_change
             cantidad.on_change = calcular_subtotal
 
-            fila = ft.Row([codigo_barras, dropdown_articulo, cantidad, precio, subtotal, ft.IconButton(icon=ft.icons.DELETE, on_click=lambda e: eliminar_fila(fila))])
+            fila = ft.Row([codigo_barras, dropdown_articulo, cantidad, precio, subtotal,
+                           ft.IconButton(icon=ft.icons.DELETE, on_click=lambda e: eliminar_fila(fila))])
             venta_items.append((codigo_barras, dropdown_articulo, cantidad, precio, subtotal))
             venta_container.controls.append(fila)
             page.update()
@@ -360,10 +406,10 @@ def main(page: ft.Page):
                 output.value = "Ingresa teléfono de cliente y selecciona empleado."; page.update(); return
             if not venta_items:
                 output.value = "Agrega al menos un artículo."; page.update(); return
-            
+
             # Validaciones de método de pago
             total_venta = float(total_text.value.split('$')[1])
-            
+
             if metodo_pago.value == "tarjeta":
                 if not numero_tarjeta.value or len(numero_tarjeta.value) < 16:
                     output.value = "Ingresa un número de tarjeta válido (16 dígitos)."; page.update(); return
@@ -375,20 +421,20 @@ def main(page: ft.Page):
                 efectivo_recibido = float(monto_efectivo.value)
                 if efectivo_recibido < total_venta:
                     output.value = "El monto en efectivo es insuficiente."; page.update(); return
-            
+
             tel = cliente_field.value.strip()
             conn = get_connection(); cursor = conn.cursor()
             cursor.execute("SELECT telefono FROM Clientes WHERE telefono = %s", (tel,))
             tel_to_use = tel if cursor.fetchone() else "999"
-            
+
             try:
-                cursor.execute("INSERT INTO Ventas (telefono_cliente, id_empleado, total, fecha_venta) VALUES (%s, %s, %s, %s)", 
-                             (tel_to_use, empleado_dropdown.value, total_venta, datetime.now()))
+                cursor.execute("INSERT INTO Ventas (telefono_cliente, id_empleado, total, fecha_venta) VALUES (%s, %s, %s, %s)",
+                               (tel_to_use, empleado_dropdown.value, total_venta, datetime.now()))
                 id_venta = cursor.lastrowid
-                
+
                 # Preparar datos para el ticket
                 items_ticket = []
-                
+
                 for codigo_barras, dropdown_articulo, cantidad, precio, _ in venta_items:
                     art_id = dropdown_articulo.value
                     if not art_id and codigo_barras.value:
@@ -400,11 +446,11 @@ def main(page: ft.Page):
                         available = cursor.fetchone()[0]
                         if qty > available:
                             conn.rollback(); output.value = f"Stock insuficiente (quedan {available})."; page.update(); return
-                        
+
                         # Obtener nombre del artículo para el ticket
                         cursor.execute("SELECT nombre FROM Articulos WHERE id_articulo = %s", (art_id,))
                         nombre_articulo = cursor.fetchone()[0]
-                        
+
                         subtotal_item = qty * float(precio.value)
                         items_ticket.append({
                             'nombre': nombre_articulo,
@@ -412,20 +458,20 @@ def main(page: ft.Page):
                             'precio': float(precio.value),
                             'subtotal': subtotal_item
                         })
-                        
-                        cursor.execute("INSERT INTO Detalles_Venta (id_venta, id_articulo, cantidad, subtotal) VALUES (%s, %s, %s, %s)", 
-                                     (id_venta, art_id, qty, subtotal_item))
-                
+
+                        cursor.execute("INSERT INTO Detalles_Venta (id_venta, id_articulo, cantidad, subtotal) VALUES (%s, %s, %s, %s)",
+                                       (id_venta, art_id, qty, subtotal_item))
+
                 conn.commit()
-                
+
                 # Obtener nombres para el ticket
                 cursor.execute("SELECT nombre FROM Clientes WHERE telefono = %s", (tel_to_use,))
                 cliente_nombre = cursor.fetchone()[0]
                 cursor.execute("SELECT nombre FROM Empleados WHERE id_empleado = %s", (empleado_dropdown.value,))
                 empleado_nombre = cursor.fetchone()[0]
-                
+
                 output.value = "Venta registrada correctamente"
-                
+
                 # Mostrar ticket según el método de pago
                 if metodo_pago.value == "efectivo":
                     efectivo_recibido = float(monto_efectivo.value)
@@ -433,17 +479,17 @@ def main(page: ft.Page):
                     mostrar_ticket_efectivo(cliente_nombre, empleado_nombre, items_ticket, total_venta, efectivo_recibido, cambio)
                 else:  # tarjeta
                     mostrar_ticket_tarjeta(cliente_nombre, empleado_nombre, items_ticket, total_venta, numero_tarjeta.value)
-                
+
                 # Limpiar formulario
                 venta_container.controls.clear(); venta_items.clear(); total_text.value = "Total: $0.00"
                 numero_tarjeta.value = ""; nip_tarjeta.value = ""; monto_efectivo.value = ""
                 cambio_text.value = "Cambio: $0.00"
                 cargar_ventas(ventas_list)
-                
+
                 # Cerrar tab automáticamente
                 tabs.tabs.pop(tabs.selected_index)
                 tabs.selected_index = max(tabs.selected_index - 1, 0)
-                
+
             except Exception as ex:
                 conn.rollback(); output.value = f"Error: {ex}"
             finally:
